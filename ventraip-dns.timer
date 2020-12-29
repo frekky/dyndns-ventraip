@@ -1,0 +1,11 @@
+[Unit]
+Description=Update VentraIP DNS record
+
+[Timer]
+OnBootSec=0min
+OnCalendar=*:0/15
+AccuracySec=1m
+Persistent=true
+
+[Install]
+WantedBy=multi-user.target

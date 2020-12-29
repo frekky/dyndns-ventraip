@@ -1,0 +1,13 @@
+[Unit]
+Description=Update VentraIP DNS record dynamically
+After=network.target
+
+[Service]
+Type=simple
+User=dyndns
+Group=nobody
+ExecStart=/usr/local/bin/ventraip-dns.py --config /etc/dyndns/ventraip.conf
+TimeoutStartSec=0
+
+[Install]
+WantedBy=default.target
