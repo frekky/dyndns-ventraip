@@ -32,25 +32,25 @@ def load_config():
         # default config
         conf = {
             'login': {
+                '?': 'Enter your plaintext VentraIP username/password',
                 'email': '',
                 'password': '',
-                '?': 'Enter your plaintext VentraIP username/password',
             },
             'record': {
+                '?': 'Enter hostname/type of an already-configured DNS record to be updated dynamically',
                 'dns_type': 'A',
                 'hostname': '',
                 'ttl': 60,
                 'prio': '',
-                '?': 'Enter hostname/type of an already-configured DNS record to be updated dynamically',
             },
             'status': {
+                '?': "Don't change anything in this section, it will be updated automatically",
                 'cookies': {
                     'access_token': '',
                     'vipcontrol_session': '',
                 },
                 'last_ip': None,
                 'last_ip_changed': None,
-                '?': "Don't change anything in this section, it will be updated automatically",
             },
         }
     
@@ -206,17 +206,17 @@ def close_session(conf, sess):
 
 
 def main():
+    global DEBUG, CONFIG_FILE
+
     parser = argparse.ArgumentParser(description='Update VentraIP DNS record with my public IP address')
     parser.add_argument('--force', action='store_true')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--config', nargs=1)
     args = parser.parse_args()
 
-    if args.config:
-        CONFIG_FILE = args.config
-
-    global DEBUG
     DEBUG = args.debug
+    if args.config:
+        CONFIG_FILE = args.config[0]
 
     conf = load_config()
 
@@ -257,7 +257,7 @@ def main():
         print(f"Found domain id '{dom_id}'")
         
         #if not status['record_id']:
-        dns_id = vip_find_dns_record_id(s, status['domain_id'], hostname)
+        dns_id = vip_find_dns_record_id(s, dom_id, hostname)
         if not dns_id:
             print(f"Unable to find existing DNS record for hostname '{hostname}', make sure it has been created already")
         print(f"Found dns record id '{dns_id}'")
