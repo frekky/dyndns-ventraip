@@ -1,6 +1,6 @@
 # dyndns-ventraip
 
-Simple Dynamic DNS on VentraIP
+Simple Dynamic DNS on [VentraIP](https://ventraip.com.au/)
 
 Requires Python 3 and `python3-requests` (ie. `pip install requests`)
 

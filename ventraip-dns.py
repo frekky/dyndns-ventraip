@@ -32,25 +32,25 @@ def load_config():
         # default config
         conf = {
             'login': {
-                '?': 'Enter your plaintext VentraIP username/password',
                 'email': '',
                 'password': '',
+                '?': 'Enter your plaintext VentraIP username/password',
             },
             'record': {
-                '?': 'Enter hostname/type of an already-configured DNS record to be updated dynamically',
                 'dns_type': 'A',
                 'hostname': '',
                 'ttl': 60,
                 'prio': '',
+                '?': 'Enter hostname/type of an already-configured DNS record to be updated dynamically',
             },
             'status': {
-                '?': "Don't change anything in this section, it will be updated automatically",
                 'cookies': {
                     'access_token': '',
                     'vipcontrol_session': '',
                 },
                 'last_ip': None,
                 'last_ip_changed': None,
+                '?': "Don't change anything in this section, it will be updated automatically",
             },
         }
     
@@ -187,8 +187,10 @@ def open_session(conf, check_only=False):
             print('Invalid session token, attempting login...')
             if vip_login(s, conf['login']['email'], conf['login']['password']) and vip_check_token(s):
                 print(f"Login success")
-                cc['access_token'] = s.cookies['access_token']
-                cc['vipcontrol_session'] = s.cookies['vipcontrol_session']
+                if DEBUG:
+                    print('cookies:', s.cookies)
+                cc['access_token'] = s.cookies.get('access_token', domain=COOKIES_DOMAIN)
+                cc['vipcontrol_session'] = s.cookies.get('vipcontrol_session', domain=COOKIES_DOMAIN)
             else:
                 print('Bad login, giving up.')
                 sys.exit(1)
@@ -201,7 +203,7 @@ def open_session(conf, check_only=False):
 
 def close_session(conf, sess):
     for x in conf['status']['cookies'].keys():
-        conf['status']['cookies'][x] = sess.cookies.get(x, '')
+        conf['status']['cookies'][x] = sess.cookies.get(x, default='', domain=COOKIES_DOMAIN)
     sess.close()
 
 
