@@ -2,7 +2,7 @@
 """
 Updates a single DNS record on VentraIP, using public IP retrieved from ipify.org
 
-Copyright (C) 2020 frekky - released under the MIT License
+Copyright (C) 2022 frekky - released under the MIT License
 """
 
 import requests as req
@@ -16,7 +16,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, 'ventraip-dns.conf')
 
 URL_BASE='https://vip.ventraip.com.au/api'
-COOKIES_DOMAIN='.vip.ventraip.com.au'
+COOKIES_DOMAIN='.ventraip.com.au' # was vip.ventraip.com.au before Aug-2022
 
 DEBUG=False
 
@@ -45,7 +45,7 @@ def load_config():
             },
             'status': {
                 'cookies': {
-                    'access_token': '',
+                    'ccp_access_token': '',  # was 'access_token' before Aug-2022
                     'vipcontrol_session': '',
                 },
                 'last_ip': None,
@@ -101,8 +101,8 @@ def vip_login(s, user, password):
         data = r.json()['data']
         assert data['type'] == 'access-token'
         token = data['attributes']['token']
-        s.cookies.set('access_token', token, domain=COOKIES_DOMAIN)
-        s.headers.update({'Authorization': f'Bearer {token}'})
+        #s.cookies.set('ccp_access_token', token, domain=COOKIES_DOMAIN)
+        #s.headers.update({'Authorization': f'Bearer {token}'})
     except (KeyError, AssertionError) as e:
         print(e)
         return False
@@ -152,19 +152,21 @@ def vip_find_dns_record_id(s, domain_id, hostname, dns_type='A'):
     except (KeyError, AssertionError) as e:
         print(e)
 
-def vip_update_dns_record(s, domain_id, record_id, hostname, value, ttl=300, dns_type='A', prio=''):
+def vip_update_dns_record(s, domain_id, record_id, hostname, value, ttl=300, dns_type='A', prio=None):
     assert type(record_id) == int and type(domain_id) == int
+    attrs = {
+        "type": dns_type,
+        "hostname": hostname,
+        "ttl": str(ttl),
+        "content": value,
+        "id": record_id,
+    }
+    if prio:
+        attrs['prio'] = prio
     req_data = {
         "type": "dns-record",
         "id": record_id,
-        "attributes": {
-            "type": dns_type,
-            "hostname": hostname,
-            "prio": prio,
-            "ttl": str(ttl),
-            "content": value,
-            "id": record_id,
-        }
+        "attributes": attrs,
     }
     r = s.put(f'{URL_BASE}/domain/{domain_id}/dns/record/{record_id}', json=req_data)
     debug_req(r)
@@ -178,9 +180,10 @@ def open_session(conf, check_only=False):
         if v:
             s.cookies.set(k, v, domain=COOKIES_DOMAIN)
 
-    auth = cc['access_token']
-    if auth:
-        s.headers.update({'Authorization': f'Bearer {auth}'})
+    # As of Aug/Sep 2022: don't need to set Authorization header, cookies are sufficient
+    #auth = cc.get('ccp_access_token')
+    #if auth:
+    #    s.headers.update({'Authorization': f'Bearer {auth}'})
 
     if not vip_check_token(s):
         if not check_only:
@@ -189,7 +192,7 @@ def open_session(conf, check_only=False):
                 print(f"Login success")
                 if DEBUG:
                     print('cookies:', s.cookies)
-                cc['access_token'] = s.cookies.get('access_token', domain=COOKIES_DOMAIN)
+                cc['ccp_access_token'] = s.cookies.get('ccp_access_token', domain=COOKIES_DOMAIN)
                 cc['vipcontrol_session'] = s.cookies.get('vipcontrol_session', domain=COOKIES_DOMAIN)
             else:
                 print('Bad login, giving up.')
