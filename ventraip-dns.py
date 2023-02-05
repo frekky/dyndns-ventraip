@@ -153,7 +153,6 @@ def vip_find_dns_record_id(s, domain_id, hostname, dns_type='A'):
         print(e)
 
 def vip_update_dns_record(s, domain_id, record_id, hostname, value, ttl=300, dns_type='A', prio=None):
-    assert type(record_id) == int and type(domain_id) == int
     attrs = {
         "type": dns_type,
         "hostname": hostname,
